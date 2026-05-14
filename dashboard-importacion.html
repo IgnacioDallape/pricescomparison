@@ -879,7 +879,7 @@
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-label">Margen Total Contenedor</div>
+        <div class="kpi-label">Margen Total Operación</div>
         <div class="kpi-value" id="kpi-margen-total-usd">USD 0</div>
         <div class="kpi-sub" id="kpi-margen-total-ars">ARS 0</div>
       </div>
@@ -1394,6 +1394,19 @@
   function recalculate() {
     const r = calculate(state);
     const tc = state.tipoCambio;
+
+    /* ---- Unidades vendidas slider: max = total importadas ---- */
+    const slUV = document.getElementById('sl-uv');
+    const inUV = document.getElementById('in-uv');
+    if (slUV && inUV) {
+      slUV.max = state.unidades;
+      inUV.max = state.unidades;
+      if (state.unidadesVendidas > state.unidades) {
+        state.unidadesVendidas = state.unidades;
+        slUV.value = state.unidades;
+        inUV.value = state.unidades;
+      }
+    }
 
     /* ---- Loss banner ---- */
     const banner = document.getElementById('loss-banner');
