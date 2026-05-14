@@ -799,6 +799,154 @@
     .scenario-row-val.neg { color: var(--negative); }
 
     /* ============================================================
+       COSTOS EN ARGENTINA
+    ============================================================ */
+    .costos-ar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 22px;
+    }
+
+    .costos-ar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .costos-ar-header-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .costos-ar-total {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .costos-ar-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+
+    .costo-ar-row {
+      display: grid;
+      grid-template-columns: 1fr 90px 100px 32px;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      transition: border-color 0.15s;
+    }
+
+    .costo-ar-row:hover { border-color: rgba(0,0,0,0.15); }
+
+    .costo-ar-name {
+      font-size: 13px;
+      font-family: inherit;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-weight: 500;
+      outline: none;
+      width: 100%;
+    }
+
+    .costo-ar-name::placeholder { color: var(--text-secondary); font-weight: 400; }
+
+    .costo-ar-currency {
+      display: flex;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .costo-ar-currency button {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      padding: 4px 0;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+
+    .costo-ar-currency button.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .costo-ar-monto {
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 4px 8px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-align: right;
+      width: 100%;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    .costo-ar-monto:focus { border-color: var(--accent); }
+    .costo-ar-monto::-webkit-inner-spin-button,
+    .costo-ar-monto::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .costo-ar-delete {
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border-strong);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit;
+      transition: all 0.12s;
+      line-height: 1;
+    }
+
+    .costo-ar-delete:hover { border-color: #C62828; color: #C62828; background: rgba(198,40,40,0.06); }
+
+    .costos-ar-empty {
+      text-align: center;
+      padding: 20px 0 8px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .costos-ar-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      transition: all 0.15s;
+    }
+
+    .costos-ar-add:hover { border-color: var(--accent); background: rgba(29,110,86,0.04); }
+
+    /* ============================================================
        NOTES SECTION
     ============================================================ */
     .notes-card {
@@ -1210,6 +1358,19 @@
     </div>
 
     <!-- ============================================================
+         COSTOS EN ARGENTINA
+    ============================================================ -->
+    <div class="section-heading">Costos en Argentina</div>
+    <div class="costos-ar-card">
+      <div class="costos-ar-header">
+        <span class="costos-ar-header-desc">Costos adicionales post-importación: depósito, traslado local, instalación, etc. Se suman al costo unitario.</span>
+        <span class="costos-ar-total" id="costos-ar-total">Total: USD 0</span>
+      </div>
+      <div class="costos-ar-list" id="costos-ar-list"></div>
+      <button class="costos-ar-add" onclick="addCostoAR()">＋ Agregar costo</button>
+    </div>
+
+    <!-- ============================================================
          CHARTS SECTION
     ============================================================ -->
     <div class="section-heading">Análisis visual</div>
@@ -1434,11 +1595,16 @@
     ncm: 0.126,
     tipoCambio: 1384,
     precioVenta: 8500,
-    unidadesVendidas: 12
+    unidadesVendidas: 12,
+    costosAR: []
   };
 
+  let _costoARNextId = 1;
+
   /* Default values for reset */
-  const DEFAULTS = { ...state };
+  const DEFAULTS = { fob:1900, unidades:12, fleteMaritimo:5000, fleteTerrestre:2200,
+    despacho:1900, financiero:350, ncm:0.126, tipoCambio:1384,
+    precioVenta:8500, unidadesVendidas:12, costosAR:[] };
 
   /* ============================================================
      NUMBER FORMATTERS
@@ -1482,7 +1648,11 @@
     const ganancias_perc = base_iva * 0.06;
     const iibb_perc      = base_iva * 0.025;
     const total_tributos = die + tasa_est + iva + iva_adicional + ganancias_perc + iibb_perc;
-    const total_cont     = fob_total + flete_mar_tot + seguro + total_tributos + despacho_tot + flete_ter_tot + financiero_tot;
+    const costos_ar_usd  = (s.costosAR || []).reduce((sum, c) => {
+      const monto = parseFloat(c.monto) || 0;
+      return sum + (c.moneda === 'ARS' ? monto / s.tipoCambio : monto);
+    }, 0);
+    const total_cont     = fob_total + flete_mar_tot + seguro + total_tributos + despacho_tot + flete_ter_tot + financiero_tot + costos_ar_usd;
     const costo_unit     = total_cont / s.unidades;
     const margen_unit    = s.precioVenta - costo_unit;
     const margen_pct     = (margen_unit / costo_unit) * 100;
@@ -1492,6 +1662,7 @@
 
     return {
       num_cont,
+      costos_ar_usd,
       fob_total, flete_mar_tot, despacho_tot, flete_ter_tot, financiero_tot,
       seguro, cif, die, tasa_est, base_iva,
       iva, iva_adicional, ganancias_perc, iibb_perc,
@@ -1827,6 +1998,14 @@
         <td>${pct(r.financiero_tot)}</td>
         <td class="note-cell">Comisiones bancarias, SWIFT</td>
       </tr>
+      ${r.costos_ar_usd > 0 ? `
+      <tr>
+        <td class="concept" title="Costos adicionales en Argentina: depósito, traslado local, instalación, etc.">Costos en Argentina</td>
+        <td>${fmtUSD(r.costos_ar_usd)}</td>
+        <td>${fmtARS(r.costos_ar_usd * tc)}</td>
+        <td>${pct(r.costos_ar_usd)}</td>
+        <td class="note-cell">${state.costosAR.map(c => c.nombre || 'Sin nombre').join(', ')}</td>
+      </tr>` : ''}
       <tr class="total-row">
         <td>TOTAL CONTENEDOR</td>
         <td>${fmtUSD(r.total_cont)}</td>
@@ -2235,8 +2414,9 @@
   ============================================================ */
   function resetDefaults() {
     if (!confirm('¿Resetear todos los valores a los predeterminados?')) return;
-    Object.assign(state, DEFAULTS);
+    Object.assign(state, JSON.parse(JSON.stringify(DEFAULTS)));
     syncInputsToState();
+    renderCostosAR();
     recalculate();
     showToast('Valores reseteados a los predeterminados');
   }
@@ -2313,16 +2493,78 @@
   }
 
   /* ============================================================
+     COSTOS EN ARGENTINA — CRUD
+  ============================================================ */
+  function renderCostosAR() {
+    const list = document.getElementById('costos-ar-list');
+    const totalEl = document.getElementById('costos-ar-total');
+    if (!list) return;
+
+    if (state.costosAR.length === 0) {
+      list.innerHTML = '<div class="costos-ar-empty">Sin costos adicionales. Usá el botón de abajo para agregar.</div>';
+    } else {
+      list.innerHTML = state.costosAR.map(c => `
+        <div class="costo-ar-row" id="car-row-${c.id}">
+          <input class="costo-ar-name" type="text" placeholder="Ej: Alquiler depósito"
+            value="${c.nombre}"
+            oninput="updateCostoAR(${c.id}, 'nombre', this.value)" />
+          <div class="costo-ar-currency">
+            <button class="${c.moneda === 'USD' ? 'active' : ''}"
+              onclick="updateCostoAR(${c.id}, 'moneda', 'USD')">USD</button>
+            <button class="${c.moneda === 'ARS' ? 'active' : ''}"
+              onclick="updateCostoAR(${c.id}, 'moneda', 'ARS')">ARS</button>
+          </div>
+          <input class="costo-ar-monto" type="number" min="0" step="100"
+            value="${c.monto}"
+            oninput="updateCostoAR(${c.id}, 'monto', this.value)" />
+          <button class="costo-ar-delete" onclick="removeCostoAR(${c.id})" title="Eliminar">×</button>
+        </div>
+      `).join('');
+    }
+
+    // Update total display
+    const totalUSD = state.costosAR.reduce((sum, c) => {
+      const m = parseFloat(c.monto) || 0;
+      return sum + (c.moneda === 'ARS' ? m / state.tipoCambio : m);
+    }, 0);
+    totalEl.textContent = totalUSD > 0
+      ? `Total: USD ${Math.round(totalUSD).toLocaleString('es-AR')}`
+      : 'Total: USD 0';
+  }
+
+  function addCostoAR() {
+    state.costosAR.push({ id: _costoARNextId++, nombre: '', monto: 0, moneda: 'USD' });
+    renderCostosAR();
+    // Focus new name input
+    const rows = document.querySelectorAll('.costo-ar-name');
+    if (rows.length) rows[rows.length - 1].focus();
+  }
+
+  function removeCostoAR(id) {
+    state.costosAR = state.costosAR.filter(c => c.id !== id);
+    renderCostosAR();
+    recalculate();
+  }
+
+  function updateCostoAR(id, field, val) {
+    const c = state.costosAR.find(c => c.id === id);
+    if (!c) return;
+    c[field] = field === 'monto' ? (parseFloat(val) || 0) : val;
+    renderCostosAR();
+    recalculate();
+  }
+
+  /* ============================================================
      INIT
   ============================================================ */
   document.addEventListener('DOMContentLoaded', function () {
     initDarkMode();
     setHeaderDate();
     initCharts();
-    // paint all slider tracks with their initial fill
     for (const ids of Object.values(sliderMap)) {
       updateTrackFill(document.getElementById(ids.sl));
     }
+    renderCostosAR();
     recalculate();
   });
   </script>
