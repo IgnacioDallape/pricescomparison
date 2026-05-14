@@ -342,6 +342,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      margin-bottom: 7px;
     }
 
     .input-row label {
@@ -350,12 +351,14 @@
       color: var(--text-secondary);
       letter-spacing: 0.01em;
       line-height: 1.3;
+      flex: 1;
     }
 
     .input-row-value { display: none; }
 
     .input-row input[type="number"] {
-      width: 80px;
+      display: block !important;
+      width: 75px;
       padding: 4px 10px;
       border: 1.5px solid rgba(0,0,0,0.12);
       border-radius: 6px;
@@ -369,6 +372,8 @@
       cursor: text;
       transition: border-color 0.15s, background 0.15s;
       flex-shrink: 0;
+      margin-left: auto;
+      order: 2;
     }
 
     .input-row input[type="number"]:focus {
@@ -1206,19 +1211,17 @@
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-fob">FOB Unitario</label>
-              <span class="input-row-value" id="pill-fob">USD 1.900</span>
+              <input type="number" id="in-fob" min="1500" max="2500" step="50" value="1900" oninput="syncInput('fob', this.value)" />
             </div>
             <input type="range" id="sl-fob" min="1500" max="2500" step="50" value="1900" oninput="syncSlider('fob', this.value)" />
-            <input type="number" id="in-fob" min="1500" max="2500" step="50" value="1900" oninput="syncInput('fob', this.value)" />
           </div>
 
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-unidades">Total unidades <span id="num-cont-badge" style="font-size:10px;color:#B45309;font-weight:700;margin-left:5px;"></span></label>
-              <span class="input-row-value" id="pill-unidades">12</span>
+              <input type="number" id="in-unidades" min="1" max="48" step="1" value="12" oninput="syncInput('unidades', this.value)" />
             </div>
             <input type="range" id="sl-unidades" min="1" max="48" step="1" value="12" oninput="syncSlider('unidades', this.value)" />
-            <input type="number" id="in-unidades" min="1" max="48" step="1" value="12" oninput="syncInput('unidades', this.value)" />
           </div>
         </div>
 
@@ -1229,37 +1232,33 @@
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-flete-maritimo">Flete marítimo 40'</label>
-              <span class="input-row-value" id="pill-fleteMaritimo">USD 5.000</span>
+              <input type="number" id="in-flete-maritimo" min="3500" max="7000" step="100" value="5000" oninput="syncInput('fleteMaritimo', this.value)" />
             </div>
             <input type="range" id="sl-flete-maritimo" min="3500" max="7000" step="100" value="5000" oninput="syncSlider('fleteMaritimo', this.value)" />
-            <input type="number" id="in-flete-maritimo" min="3500" max="7000" step="100" value="5000" oninput="syncInput('fleteMaritimo', this.value)" />
           </div>
 
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-flete-terrestre">Flete terrestre B.A.→Maipú</label>
-              <span class="input-row-value" id="pill-fleteTerrestre">USD 2.200</span>
+              <input type="number" id="in-flete-terrestre" min="1500" max="3500" step="100" value="2200" oninput="syncInput('fleteTerrestre', this.value)" />
             </div>
             <input type="range" id="sl-flete-terrestre" min="1500" max="3500" step="100" value="2200" oninput="syncSlider('fleteTerrestre', this.value)" />
-            <input type="number" id="in-flete-terrestre" min="1500" max="3500" step="100" value="2200" oninput="syncInput('fleteTerrestre', this.value)" />
           </div>
 
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-despacho">Despacho y puerto</label>
-              <span class="input-row-value" id="pill-despacho">USD 1.900</span>
+              <input type="number" id="in-despacho" min="500" max="3000" step="50" value="1900" oninput="syncInput('despacho', this.value)" />
             </div>
             <input type="range" id="sl-despacho" min="500" max="3000" step="50" value="1900" oninput="syncSlider('despacho', this.value)" />
-            <input type="number" id="in-despacho" min="500" max="3000" step="50" value="1900" oninput="syncInput('despacho', this.value)" />
           </div>
 
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-financiero">Gastos financieros</label>
-              <span class="input-row-value" id="pill-financiero">USD 350</span>
+              <input type="number" id="in-financiero" min="0" max="1000" step="50" value="350" oninput="syncInput('financiero', this.value)" />
             </div>
             <input type="range" id="sl-financiero" min="0" max="1000" step="50" value="350" oninput="syncSlider('financiero', this.value)" />
-            <input type="number" id="in-financiero" min="0" max="1000" step="50" value="350" oninput="syncInput('financiero', this.value)" />
           </div>
         </div>
 
@@ -1298,28 +1297,25 @@
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-precio">Precio de venta unitario</label>
-              <span class="input-row-value" id="pill-precioVenta">USD 8.500</span>
+              <input type="number" id="in-precio" min="5000" max="13000" step="100" value="8500" oninput="syncInput('precioVenta', this.value)" />
             </div>
             <input type="range" id="sl-precio" min="5000" max="13000" step="100" value="8500" oninput="syncSlider('precioVenta', this.value)" />
-            <input type="number" id="in-precio" min="5000" max="13000" step="100" value="8500" oninput="syncInput('precioVenta', this.value)" />
           </div>
 
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-tc">Tipo de cambio mayorista</label>
-              <span class="input-row-value" id="pill-tipoCambio">ARS 1.384</span>
+              <input type="number" id="in-tc" min="1300" max="1700" step="10" value="1384" oninput="syncInput('tipoCambio', this.value)" />
             </div>
             <input type="range" id="sl-tc" min="1300" max="1700" step="10" value="1384" oninput="syncSlider('tipoCambio', this.value)" />
-            <input type="number" id="in-tc" min="1300" max="1700" step="10" value="1384" oninput="syncInput('tipoCambio', this.value)" />
           </div>
 
           <div class="input-row">
             <div class="input-row-header">
               <label for="sl-uv">Unidades vendidas</label>
-              <span class="input-row-value" id="pill-unidadesVendidas">12</span>
+              <input type="number" id="in-uv" min="1" max="20" step="1" value="12" oninput="syncInput('unidadesVendidas', this.value)" />
             </div>
             <input type="range" id="sl-uv" min="1" max="20" step="1" value="12" oninput="syncSlider('unidadesVendidas', this.value)" />
-            <input type="number" id="in-uv" min="1" max="20" step="1" value="12" oninput="syncInput('unidadesVendidas', this.value)" />
           </div>
         </div>
         <div class="multi-container-note" id="multi-container-note">📦 Venta proyectada multi-contenedor</div>
