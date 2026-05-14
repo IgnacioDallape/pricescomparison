@@ -915,9 +915,9 @@
         </div>
 
         <div class="input-row">
-          <label for="sl-unidades">Unidades por contenedor</label>
-          <input type="range" id="sl-unidades" min="8" max="16" step="1" value="12" oninput="syncSlider('unidades', this.value)" />
-          <input type="number" id="in-unidades" min="8" max="16" step="1" value="12" oninput="syncInput('unidades', this.value)" />
+          <label for="sl-unidades">Total unidades a importar <span id="num-cont-badge" style="font-size:11px;color:var(--accent);font-weight:600;margin-left:6px;">1 contenedor</span></label>
+          <input type="range" id="sl-unidades" min="1" max="48" step="1" value="12" oninput="syncSlider('unidades', this.value)" />
+          <input type="number" id="in-unidades" min="1" max="48" step="1" value="12" oninput="syncInput('unidades', this.value)" />
         </div>
 
         <div class="input-row">
@@ -1271,10 +1271,18 @@
   /* ============================================================
      CORE CALCULATION
   ============================================================ */
+  const MAX_PER_CONT = 12; // unidades físicas máximas en un contenedor 40'
+
   function calculate(s) {
+    const num_cont       = Math.ceil(s.unidades / MAX_PER_CONT);
     const fob_total      = s.fob * s.unidades;
-    const seguro         = (fob_total + s.fleteMaritimo) * 0.005;
-    const cif            = fob_total + s.fleteMaritimo + seguro;
+    // costos por contenedor se multiplican por la cantidad de contenedores necesarios
+    const flete_mar_tot  = s.fleteMaritimo * num_cont;
+    const despacho_tot   = s.despacho * num_cont;
+    const flete_ter_tot  = s.fleteTerrestre * num_cont;
+    const financiero_tot = s.financiero * num_cont;
+    const seguro         = (fob_total + flete_mar_tot) * 0.005;
+    const cif            = fob_total + flete_mar_tot + seguro;
     const die            = cif * s.ncm;
     const tasa_est       = cif * 0.03;
     const base_iva       = cif + die + tasa_est;
@@ -1283,7 +1291,7 @@
     const ganancias_perc = base_iva * 0.06;
     const iibb_perc      = base_iva * 0.025;
     const total_tributos = die + tasa_est + iva + iva_adicional + ganancias_perc + iibb_perc;
-    const total_cont     = fob_total + s.fleteMaritimo + seguro + total_tributos + s.despacho + s.fleteTerrestre + s.financiero;
+    const total_cont     = fob_total + flete_mar_tot + seguro + total_tributos + despacho_tot + flete_ter_tot + financiero_tot;
     const costo_unit     = total_cont / s.unidades;
     const margen_unit    = s.precioVenta - costo_unit;
     const margen_pct     = (margen_unit / costo_unit) * 100;
@@ -1292,7 +1300,9 @@
     const punto_eq       = Math.ceil(total_cont / s.precioVenta);
 
     return {
-      fob_total, seguro, cif, die, tasa_est, base_iva,
+      num_cont,
+      fob_total, flete_mar_tot, despacho_tot, flete_ter_tot, financiero_tot,
+      seguro, cif, die, tasa_est, base_iva,
       iva, iva_adicional, ganancias_perc, iibb_perc,
       total_tributos, total_cont, costo_unit,
       margen_unit, margen_pct, ingreso_total, margen_total, punto_eq
@@ -1432,6 +1442,14 @@
     kpiEqBar.style.background = eqPct > 100 ? 'var(--negative)' : 'var(--accent)';
     kpiEqSub.textContent = `Necesitás vender al menos ${r.punto_eq} unidades para cubrir costos`;
 
+    /* ---- Badge contenedores ---- */
+    const badge = document.getElementById('num-cont-badge');
+    if (badge) {
+      const nc = r.num_cont;
+      badge.textContent = nc === 1 ? '1 contenedor' : `${nc} contenedores`;
+      badge.style.color = nc > 1 ? 'var(--secondary)' : 'var(--accent)';
+    }
+
     /* ---- NCM die amounts ---- */
     const cif35  = calculate({ ...state, ncm: 0.35 }).die;
     const cif126 = calculate({ ...state, ncm: 0.126 }).die;
@@ -1478,10 +1496,10 @@
         <td class="note-cell">Precio de fábrica en China</td>
       </tr>
       <tr>
-        <td class="concept" title="Costo del contenedor 40' desde origen a Buenos Aires">Flete Marítimo 40'</td>
-        <td>${fmtUSD(state.fleteMaritimo)}</td>
-        <td>${fmtARS(state.fleteMaritimo * tc)}</td>
-        <td>${pct(state.fleteMaritimo)}</td>
+        <td class="concept" title="Costo del contenedor 40' desde origen a Buenos Aires (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Flete Marítimo 40'${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
+        <td>${fmtUSD(r.flete_mar_tot)}</td>
+        <td>${fmtARS(r.flete_mar_tot * tc)}</td>
+        <td>${pct(r.flete_mar_tot)}</td>
         <td class="note-cell">Cotización spot, ruta Asia–B.A.</td>
       </tr>
       <tr>
@@ -1560,24 +1578,24 @@
         <td class="note-cell">DIE + Est. + IVA + Percepciones</td>
       </tr>
       <tr>
-        <td class="concept" title="Honorarios del despachante, gastos de terminal y puerto">Gastos Despacho y Puerto</td>
-        <td>${fmtUSD(state.despacho)}</td>
-        <td>${fmtARS(state.despacho * tc)}</td>
-        <td>${pct(state.despacho)}</td>
+        <td class="concept" title="Honorarios del despachante, gastos de terminal y puerto (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Gastos Despacho y Puerto${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
+        <td>${fmtUSD(r.despacho_tot)}</td>
+        <td>${fmtARS(r.despacho_tot * tc)}</td>
+        <td>${pct(r.despacho_tot)}</td>
         <td class="note-cell">Despachante + terminal + almacenaje</td>
       </tr>
       <tr>
-        <td class="concept" title="Transporte por camión desde Buenos Aires hasta Maipú, Mendoza">Flete Terrestre B.A. → Maipú</td>
-        <td>${fmtUSD(state.fleteTerrestre)}</td>
-        <td>${fmtARS(state.fleteTerrestre * tc)}</td>
-        <td>${pct(state.fleteTerrestre)}</td>
+        <td class="concept" title="Transporte por camión desde Buenos Aires hasta Maipú, Mendoza (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Flete Terrestre B.A. → Maipú${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
+        <td>${fmtUSD(r.flete_ter_tot)}</td>
+        <td>${fmtARS(r.flete_ter_tot * tc)}</td>
+        <td>${pct(r.flete_ter_tot)}</td>
         <td class="note-cell">Transporte en camión, ~1.100 km</td>
       </tr>
       <tr>
-        <td class="concept" title="Costos bancarios, comisiones de transferencia, seguros de crédito">Gastos Financieros</td>
-        <td>${fmtUSD(state.financiero)}</td>
-        <td>${fmtARS(state.financiero * tc)}</td>
-        <td>${pct(state.financiero)}</td>
+        <td class="concept" title="Costos bancarios, comisiones de transferencia, seguros de crédito (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Gastos Financieros${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
+        <td>${fmtUSD(r.financiero_tot)}</td>
+        <td>${fmtARS(r.financiero_tot * tc)}</td>
+        <td>${pct(r.financiero_tot)}</td>
         <td class="note-cell">Comisiones bancarias, SWIFT</td>
       </tr>
       <tr class="total-row">
@@ -1691,12 +1709,12 @@
       datasets: [{
         data: [
           r.fob_total,
-          state.fleteMaritimo + r.seguro,
+          r.flete_mar_tot + r.seguro,
           r.die,
           tribIVA,
-          state.despacho,
-          state.fleteTerrestre,
-          state.financiero
+          r.despacho_tot,
+          r.flete_ter_tot,
+          r.financiero_tot
         ],
         backgroundColor: Object.values(CHART_COLORS),
         borderWidth: 1,
