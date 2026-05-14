@@ -1288,7 +1288,7 @@
     const margen_unit    = s.precioVenta - costo_unit;
     const margen_pct     = (margen_unit / costo_unit) * 100;
     const ingreso_total  = s.precioVenta * s.unidadesVendidas;
-    const margen_total   = ingreso_total - total_cont;
+    const margen_total   = margen_unit * s.unidadesVendidas;
     const punto_eq       = Math.ceil(total_cont / s.precioVenta);
 
     return {
