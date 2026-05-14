@@ -329,26 +329,20 @@
     .badge-green  { background: #1D6E56; }
 
     .input-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
-      column-gap: 10px;
-      row-gap: 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
       margin-bottom: 16px;
     }
 
     .input-row:last-child { margin-bottom: 0; }
 
     .input-row-header {
-      grid-column: 1;
-      grid-row: 1;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      gap: 10px;
     }
-
-    /* pill hidden — number input replaces it */
-    .input-row-value { display: none; }
 
     .input-row label {
       font-size: 12px;
@@ -358,15 +352,9 @@
       line-height: 1.3;
     }
 
-    .input-row input[type="range"] {
-      grid-column: 1 / -1;
-      grid-row: 2;
-    }
+    .input-row-value { display: none; }
 
     .input-row input[type="number"] {
-      grid-column: 2;
-      grid-row: 1;
-      display: block;
       width: 78px;
       padding: 3px 9px;
       border: 1.5px solid rgba(0,0,0,0.12);
@@ -380,6 +368,7 @@
       -moz-appearance: textfield;
       cursor: text;
       transition: border-color 0.15s, background 0.15s;
+      flex-shrink: 0;
     }
 
     .input-row input[type="number"]:focus {
@@ -406,13 +395,17 @@
     .input-row input[type="range"] {
       width: 100%;
       height: 6px;
+    }
+
+    .input-row input[type="range"] {
+      width: 100%;
+      height: 6px;
       -webkit-appearance: none;
       appearance: none;
       border-radius: 6px;
       background: rgba(0,0,0,0.10);
       cursor: pointer;
       outline: none;
-      transition: opacity 0.15s;
     }
 
     html.dark .input-row input[type="range"] {
