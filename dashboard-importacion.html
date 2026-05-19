@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rutas del Sur — Calculadora de Importación</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#1D6E56" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Importación RS" />
+  <meta name="description" content="Calculadora de costos de importación — Rutas del Sur S.A." />
+  <link rel="manifest" href="/manifest-importacion.json" />
+  <link rel="apple-touch-icon" href="/icons/icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -212,7 +224,7 @@
     ============================================================ */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 16px;
     }
 
@@ -719,6 +731,122 @@
     tr.margin-positive td { color: var(--positive); font-weight: 600; }
     tr.margin-negative td { color: var(--negative); font-weight: 600; }
 
+    /* ---- Fiscal analysis rows ---- */
+    tr.fiscal-section-header td {
+      background: #1a1a2e;
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      text-transform: uppercase;
+    }
+    html.dark tr.fiscal-section-header td {
+      background: #0d1117;
+    }
+
+    tr.fiscal-row td {
+      background: #f8f6ff;
+      border-top: 1px solid rgba(100,80,200,0.1);
+    }
+    html.dark tr.fiscal-row td {
+      background: #1a1830;
+    }
+
+    tr.fiscal-subtotal td {
+      background: #ede9ff;
+      font-weight: 600;
+    }
+    html.dark tr.fiscal-subtotal td {
+      background: #1f1a40;
+    }
+
+    tr.ganancia-neta-row td {
+      background: #1a3a2a;
+      color: #4ade80 !important;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 14px;
+      border-top: 2px solid #4ade80;
+    }
+    html.dark tr.ganancia-neta-row td {
+      background: #0d2016;
+    }
+
+    /* ============================================================
+       RESULTADO NETO CARD
+    ============================================================ */
+    .neto-card {
+      background: linear-gradient(135deg, #0f2d1f 0%, #1a3a2a 100%);
+      border: 1px solid rgba(74,222,128,0.25);
+      border-radius: var(--radius-card);
+      padding: 24px 28px;
+      color: white;
+    }
+    html.dark .neto-card {
+      background: linear-gradient(135deg, #071a10 0%, #0f2d1f 100%);
+    }
+
+    .neto-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #86efac;
+      margin-bottom: 20px;
+    }
+
+    .neto-card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      position: relative;
+    }
+
+    .neto-item {
+      padding: 0 20px;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .neto-item:first-child { padding-left: 0; }
+    .neto-item:last-child { border-right: none; }
+
+    .neto-item-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .neto-item-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .neto-item-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .neto-item.neto-minus .neto-item-val { color: #fca5a5; }
+    .neto-item.neto-plus .neto-item-val  { color: #86efac; }
+    .neto-item.neto-result {
+      background: rgba(74,222,128,0.12);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      border: 1px solid rgba(74,222,128,0.3);
+      border-right: 1px solid rgba(74,222,128,0.3) !important;
+    }
+    .neto-item.neto-result .neto-item-val {
+      font-size: 24px;
+      color: #4ade80;
+    }
+    .neto-item.neto-result .neto-item-sub { color: #86efac; }
+
     .badge-recoverable {
       display: inline-block;
       padding: 2px 6px;
@@ -1189,6 +1317,12 @@
         <div class="kpi-sub" id="kpi-eq-sub">Necesitás vender X unidades para cubrir costos</div>
       </div>
 
+      <div class="kpi-card">
+        <div class="kpi-label">Costo Total de Importación</div>
+        <div class="kpi-value" id="kpi-total-costo-usd">USD 0</div>
+        <div class="kpi-sub" id="kpi-total-costo-ars">ARS 0</div>
+      </div>
+
     </div>
 
     <!-- ============================================================
@@ -1412,6 +1546,39 @@
             <!-- Filled by JS -->
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         RESULTADO NETO CARD
+    ============================================================ -->
+    <div class="neto-card" id="neto-card">
+      <div class="neto-card-title">💰 Resultado Final Post-Impuestos</div>
+      <div class="neto-card-grid">
+        <div class="neto-item">
+          <div class="neto-item-label">Ingreso total</div>
+          <div class="neto-item-val" id="neto-ingreso">USD 0</div>
+        </div>
+        <div class="neto-item neto-minus">
+          <div class="neto-item-label">Costo económico real</div>
+          <div class="neto-item-val" id="neto-costo-eco">− USD 0</div>
+          <div class="neto-item-sub">sin recuperables</div>
+        </div>
+        <div class="neto-item neto-plus">
+          <div class="neto-item-label">Créditos fiscales</div>
+          <div class="neto-item-val" id="neto-recuperables">+ USD 0</div>
+          <div class="neto-item-sub">IVA + percepciones</div>
+        </div>
+        <div class="neto-item neto-minus">
+          <div class="neto-item-label">Imp. a las Ganancias</div>
+          <div class="neto-item-val" id="neto-imp-ganancias">− USD 0</div>
+          <div class="neto-item-sub">35% sobre utilidad</div>
+        </div>
+        <div class="neto-item neto-result">
+          <div class="neto-item-label">Ganancia neta</div>
+          <div class="neto-item-val" id="neto-ganancia">USD 0</div>
+          <div class="neto-item-sub" id="neto-ganancia-sub">0.0% sobre inversión</div>
+        </div>
       </div>
     </div>
 
@@ -1650,6 +1817,21 @@
     const margen_total   = ingreso_total - total_cont;
     const punto_eq       = Math.ceil(total_cont / s.precioVenta);
 
+    // ---- Análisis post-impuestos ----
+    // Los impuestos "recuperables" son crédito fiscal que vuelve en la DDJJ
+    const recuperables        = iva + iva_adicional + ganancias_perc + iibb_perc;
+    // Costo económico real = total sin los recuperables
+    const costo_economico     = total_cont - recuperables;
+    // Margen ajustado = ingreso - costo económico real
+    const margen_ajustado     = ingreso_total - costo_economico;
+    // Impuesto a las Ganancias (alícuota 35% sobre utilidad)
+    const alicuota_ganancias  = 0.35;
+    const impuesto_ganancias  = Math.max(0, margen_ajustado * alicuota_ganancias);
+    // Ganancia neta final
+    const ganancia_neta       = margen_ajustado - impuesto_ganancias;
+    const ganancia_neta_pct   = costo_economico > 0 ? (ganancia_neta / costo_economico) * 100 : 0;
+    const roi_neto            = costo_economico > 0 ? (ganancia_neta / costo_economico) * 100 : 0;
+
     return {
       num_cont,
       costos_ar_usd,
@@ -1657,7 +1839,9 @@
       seguro, cif, die, tasa_est, base_iva,
       iva, iva_adicional, ganancias_perc, iibb_perc,
       total_tributos, total_cont, costo_unit,
-      margen_unit, margen_pct, ingreso_total, margen_total, punto_eq
+      margen_unit, margen_pct, ingreso_total, margen_total, punto_eq,
+      recuperables, costo_economico, margen_ajustado,
+      impuesto_ganancias, ganancia_neta, ganancia_neta_pct, roi_neto
     };
   }
 
@@ -1831,6 +2015,22 @@
     kpiEqBar.style.width = eqPct + '%';
     kpiEqBar.style.background = eqPct > 100 ? 'var(--negative)' : 'var(--accent)';
     kpiEqSub.textContent = `Necesitás vender al menos ${r.punto_eq} unidades para cubrir costos`;
+
+    const kpiTotalCostoUSD = document.getElementById('kpi-total-costo-usd');
+    const kpiTotalCostoARS = document.getElementById('kpi-total-costo-ars');
+    kpiTotalCostoUSD.textContent = fmtUSD(r.total_cont);
+    kpiTotalCostoARS.textContent = fmtARS(r.total_cont * tc);
+
+    /* ---- Neto card ---- */
+    document.getElementById('neto-ingreso').textContent       = fmtUSD(r.ingreso_total);
+    document.getElementById('neto-costo-eco').textContent     = '− ' + fmtUSD(r.costo_economico);
+    document.getElementById('neto-recuperables').textContent  = '+ ' + fmtUSD(r.recuperables);
+    document.getElementById('neto-imp-ganancias').textContent = '− ' + fmtUSD(r.impuesto_ganancias);
+    const netoGanancia = document.getElementById('neto-ganancia');
+    netoGanancia.textContent = fmtUSD(r.ganancia_neta);
+    netoGanancia.style.color = r.ganancia_neta >= 0 ? '#4ade80' : '#fca5a5';
+    document.getElementById('neto-ganancia-sub').textContent  =
+      fmtPct(r.roi_neto) + ' ROI s/inversión real';
 
     /* ---- Badge contenedores ---- */
     const badge = document.getElementById('num-cont-badge');
@@ -2035,6 +2235,50 @@
         <td class="concept" title="Cantidad mínima de unidades a vender para recuperar la inversión total">Punto de Equilibrio</td>
         <td colspan="3">${r.punto_eq} unidades (de ${state.unidades} disponibles)</td>
         <td class="note-cell">Total_cont ÷ Precio_venta</td>
+      </tr>
+
+      <tr class="fiscal-section-header">
+        <td colspan="5">⚖️ Análisis Fiscal — Resultado Post-Impuestos</td>
+      </tr>
+      <tr class="fiscal-row">
+        <td class="concept" title="IVA importación + IVA adicional + Percepción Ganancias + Percepción IIBB — se recuperan como crédito fiscal en la DDJJ mensual">
+          (+) Créditos Fiscales Recuperables
+          <span class="badge-recoverable">crédito fiscal</span>
+        </td>
+        <td style="color:var(--positive);font-weight:600">+${fmtUSD(r.recuperables)}</td>
+        <td style="color:var(--positive)">+${fmtARS(r.recuperables * tc)}</td>
+        <td>—</td>
+        <td class="note-cell">IVA 21% + IVA Adic. 20% + Gan. 6% + IIBB 2.5%</td>
+      </tr>
+      <tr class="fiscal-row fiscal-subtotal">
+        <td title="Margen real descontando sólo los costos que no vuelven">▶ Costo Económico Real (sin recuperables)</td>
+        <td>${fmtUSD(r.costo_economico)}</td>
+        <td>${fmtARS(r.costo_economico * tc)}</td>
+        <td>—</td>
+        <td class="note-cell">Total sin IVA + percepciones</td>
+      </tr>
+      <tr class="fiscal-row fiscal-subtotal">
+        <td title="Ganancia antes de impuesto a las ganancias corporativo">▶ Ganancia Bruta Ajustada (recuperables incluidos)</td>
+        <td style="font-weight:600;color:${r.margen_ajustado >= 0 ? 'var(--positive)' : 'var(--negative)'}">${fmtUSD(r.margen_ajustado)}</td>
+        <td style="color:${r.margen_ajustado >= 0 ? 'var(--positive)' : 'var(--negative)'}">${fmtARS(r.margen_ajustado * tc)}</td>
+        <td>—</td>
+        <td class="note-cell">Ingreso − Costo económico</td>
+      </tr>
+      <tr class="fiscal-row">
+        <td class="concept" title="Impuesto a las Ganancias corporativo — alícuota general 35% sobre utilidad neta">
+          (−) Impuesto a las Ganancias (35%)
+        </td>
+        <td style="color:var(--negative);font-weight:600">−${fmtUSD(r.impuesto_ganancias)}</td>
+        <td style="color:var(--negative)">−${fmtARS(r.impuesto_ganancias * tc)}</td>
+        <td>—</td>
+        <td class="note-cell">Alícuota 35% — Ley 20.628</td>
+      </tr>
+      <tr class="ganancia-neta-row">
+        <td><strong>GANANCIA NETA POST-IMPUESTOS</strong></td>
+        <td><strong>${fmtUSD(r.ganancia_neta)}</strong></td>
+        <td><strong>${fmtARS(r.ganancia_neta * tc)}</strong></td>
+        <td><strong>${fmtPct(r.ganancia_neta_pct)} s/costo real</strong></td>
+        <td>${r.ganancia_neta >= 0 ? '✅ Operación rentable' : '❌ Pérdida neta'}</td>
       </tr>
     `;
   }
@@ -2557,6 +2801,17 @@
     renderCostosAR();
     recalculate();
   });
+  </script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw-importacion.js')
+          .then(reg => console.log('[SW] Registrado:', reg.scope))
+          .catch(err => console.warn('[SW] Error:', err));
+      });
+    }
   </script>
 
 </body>

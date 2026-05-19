@@ -1,0 +1,35 @@
+{
+  "name": "Calculadora de Importación — Rutas del Sur",
+  "short_name": "Importación RS",
+  "description": "Calculadora de costos de importación para Rutas del Sur S.A. — Análisis de márgenes, aranceles y punto de equilibrio.",
+  "start_url": "/dashboard-importacion.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#1D6E56",
+  "orientation": "any",
+  "lang": "es",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Abrir calculadora",
+      "url": "/dashboard-importacion.html",
+      "description": "Acceder directamente a la calculadora de importación"
+    }
+  ]
+}

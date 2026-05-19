@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1D6E56"/>
+  <rect x="80" y="200" width="352" height="200" rx="18" fill="white" opacity="0.18"/>
+  <rect x="80" y="200" width="352" height="200" rx="18" fill="none" stroke="white" stroke-width="10" opacity="0.5"/>
+  <!-- Ship hull -->
+  <path d="M100 320 L412 320 L380 380 L132 380 Z" fill="white" opacity="0.9"/>
+  <!-- Containers -->
+  <rect x="120" y="240" width="80" height="80" rx="6" fill="#2BB89A"/>
+  <rect x="216" y="240" width="80" height="80" rx="6" fill="#B85A1D"/>
+  <rect x="312" y="240" width="80" height="80" rx="6" fill="#2BB89A"/>
+  <!-- Lines on containers -->
+  <line x1="160" y1="240" x2="160" y2="320" stroke="white" stroke-width="4" opacity="0.5"/>
+  <line x1="256" y1="240" x2="256" y2="320" stroke="white" stroke-width="4" opacity="0.5"/>
+  <line x1="352" y1="240" x2="352" y2="320" stroke="white" stroke-width="4" opacity="0.5"/>
+  <!-- Chimney -->
+  <rect x="220" y="160" width="30" height="80" rx="6" fill="white" opacity="0.8"/>
+  <!-- Smoke -->
+  <circle cx="235" cy="148" r="14" fill="white" opacity="0.4"/>
+  <circle cx="248" cy="132" r="10" fill="white" opacity="0.3"/>
+  <!-- Text RS -->
+  <text x="256" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="52" font-weight="700" fill="white" opacity="0.9">RUTAS DEL SUR</text>
+</svg>
