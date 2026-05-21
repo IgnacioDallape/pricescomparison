@@ -3182,6 +3182,45 @@
     financiero:'#CBD5E1'
   };
 
+  /* Custom Chart.js plugin: draw % labels inside each donut/pie slice */
+  const percentageLabelsPlugin = {
+    id: 'percentageLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data } = chart;
+      if (!data.datasets || !data.datasets[0]) return;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
+      const dataArr = data.datasets[0].data;
+      const total = dataArr.reduce((a, b) => a + (b || 0), 0);
+      if (total === 0) return;
+
+      meta.data.forEach((arc, i) => {
+        const value = dataArr[i] || 0;
+        const pct = (value / total) * 100;
+        if (pct < 3.5) return; // skip very small slices
+
+        const props = arc.getProps(
+          ['x','y','startAngle','endAngle','outerRadius','innerRadius'], true
+        );
+        const midAngle = (props.startAngle + props.endAngle) / 2;
+        const midRadius = (props.innerRadius + props.outerRadius) / 2;
+        const px = props.x + Math.cos(midAngle) * midRadius;
+        const py = props.y + Math.sin(midAngle) * midRadius;
+
+        ctx.save();
+        ctx.font = '700 12px Inter, system-ui, sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.45)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 1;
+        ctx.fillText(pct.toFixed(1) + '%', px, py);
+        ctx.restore();
+      });
+    }
+  };
+
   function initCharts() {
     const r = calculate(state);
     initDoughnut(r);
@@ -3199,6 +3238,7 @@
     chartDoughnut = new Chart(ctx, {
       type: 'doughnut',
       data: getDoughnutData(r),
+      plugins: [percentageLabelsPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -3283,6 +3323,7 @@
     chartBar = new Chart(ctx, {
       type: 'doughnut',
       data: getProfitData(r),
+      plugins: [percentageLabelsPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,

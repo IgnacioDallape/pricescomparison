@@ -3,7 +3,7 @@
    Network-first for HTML/JSON, cache-first for static assets
 ============================================================ */
 
-const CACHE_NAME = 'importacion-rs-v13-tablefit';
+const CACHE_NAME = 'importacion-rs-v14-pct';
 
 const PRECACHE_ASSETS = [
   '/icons/icon.svg',
