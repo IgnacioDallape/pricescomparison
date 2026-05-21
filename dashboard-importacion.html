@@ -1876,30 +1876,7 @@
       .neto-item-val { font-size: 16px; }
       .neto-item.neto-result .neto-item-val { font-size: 22px; }
 
-      /* Mobile scroll hint */
-      .table-card { position: relative; }
-      .table-card::after {
-        content: '⇢ desliza';
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        font-size: 9.5px;
-        font-weight: 600;
-        color: var(--text-tertiary);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        padding: 4px 8px;
-        background: var(--accent-soft);
-        border-radius: 99px;
-        animation: hintFade 3s ease-in-out infinite;
-        pointer-events: none;
-      }
-      @keyframes hintFade {
-        0%, 100% { opacity: 0.5; }
-        50% { opacity: 1; }
-      }
-
-      /* Table — sticky first column + horizontal scroll for the rest */
+      /* Table — fits without scroll (only 3 columns now) */
       .table-card-header { padding: 14px 16px 14px 18px; flex-direction: column; align-items: flex-start; gap: 6px; }
       .table-card-title { font-size: 12.5px; }
       .table-wrap {
@@ -1907,7 +1884,7 @@
         -webkit-overflow-scrolling: touch;
         position: relative;
       }
-      table { font-size: 12px; min-width: 480px; }
+      table { font-size: 12px; min-width: 0; width: 100%; }
       thead th {
         padding: 10px 12px;
         font-size: 9.5px;
@@ -1946,9 +1923,6 @@
       tr.unit-row td:first-child,
       tr.ganancia-neta-row td:first-child,
       tr.fiscal-section-header td:first-child { background: inherit; box-shadow: none; }
-
-      /* Hide the Notas column on mobile — useless and crowds the layout */
-      td.note-cell, thead th:last-child { display: none; }
 
       /* Section headings */
       .section-heading { font-size: 10px; margin: 4px 0 -6px; }
@@ -2048,7 +2022,7 @@
       /* Table — even tighter */
       .table-card-header { padding: 12px 14px; }
       .table-card-title { font-size: 12px; }
-      table { font-size: 11.5px; min-width: 420px; }
+      table { font-size: 11.5px; min-width: 0; width: 100%; }
       thead th { padding: 8px 10px; font-size: 9px; }
       tbody td { padding: 9px 10px; font-size: 11.5px; }
       tbody td:not(:first-child) { font-size: 11px; }
@@ -2492,8 +2466,6 @@
               <th style="min-width:240px">Concepto</th>
               <th>USD</th>
               <th>ARS</th>
-              <th>% del Total</th>
-              <th style="min-width:180px">Notas</th>
             </tr>
           </thead>
           <tbody id="breakdown-tbody">
@@ -3034,10 +3006,6 @@
   ============================================================ */
   function updateTable(r) {
     const tc    = state.tipoCambio;
-    const total = r.total_cont;
-
-    function pct(v) { return total > 0 ? fmtPct((v / total) * 100) : '0%'; }
-
     const tbody = document.getElementById('breakdown-tbody');
 
     /* Determine margin row class */
@@ -3051,43 +3019,31 @@
         <td class="concept" title="Precio de fábrica en origen, sin incluir flete ni seguro">FOB Total (${state.unidades} und. × USD ${fmtNum(state.fob)})</td>
         <td>${fmtUSD(r.fob_total)}</td>
         <td>${fmtARS(r.fob_total * tc)}</td>
-        <td>${pct(r.fob_total)}</td>
-        <td class="note-cell">Precio de fábrica en China</td>
       </tr>
       <tr>
         <td class="concept" title="Costo del contenedor 40' desde origen a Buenos Aires (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Flete Marítimo 40'${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
         <td>${fmtUSD(r.flete_mar_tot)}</td>
         <td>${fmtARS(r.flete_mar_tot * tc)}</td>
-        <td>${pct(r.flete_mar_tot)}</td>
-        <td class="note-cell">Cotización spot, ruta Asia–B.A.</td>
       </tr>
       <tr>
         <td class="concept" title="Prima de seguro = 0.5% sobre (FOB + Flete marítimo)">Seguro Internacional (0.5%)</td>
         <td>${fmtUSD(r.seguro)}</td>
         <td>${fmtARS(r.seguro * tc)}</td>
-        <td>${pct(r.seguro)}</td>
-        <td class="note-cell">0.5% × (FOB + Flete)</td>
       </tr>
       <tr class="subtotal-row">
         <td title="Costo Seguro Flete — base para cálculo aduanero">▶ Valor CIF (subtotal)</td>
         <td>${fmtUSD(r.cif)}</td>
         <td>${fmtARS(r.cif * tc)}</td>
-        <td>${pct(r.cif)}</td>
-        <td class="note-cell">Base de valoración aduanera</td>
       </tr>
       <tr>
         <td class="concept" title="Derecho de importación extra-zona — ${ncmPctLabel} sobre CIF">DIE — Arancel NCM ${ncmPctLabel}</td>
         <td>${fmtUSD(r.die)}</td>
         <td>${fmtARS(r.die * tc)}</td>
-        <td>${pct(r.die)}</td>
-        <td class="note-cell">CIF × ${ncmPctLabel}</td>
       </tr>
       <tr>
         <td class="concept" title="Tasa estadística del INDEC — 3% sobre CIF">Tasa Estadística (3% CIF)</td>
         <td>${fmtUSD(r.tasa_est)}</td>
         <td>${fmtARS(r.tasa_est * tc)}</td>
-        <td>${pct(r.tasa_est)}</td>
-        <td class="note-cell">CIF × 3%</td>
       </tr>
       <tr>
         <td class="concept" title="IVA sobre importación — recuperable como crédito fiscal">
@@ -3096,8 +3052,6 @@
         </td>
         <td>${fmtUSD(r.iva)}</td>
         <td>${fmtARS(r.iva * tc)}</td>
-        <td>${pct(r.iva)}</td>
-        <td class="note-cell">Base IVA × 21%</td>
       </tr>
       <tr>
         <td class="concept" title="Percepción IVA adicional — recuperable">
@@ -3106,8 +3060,6 @@
         </td>
         <td>${fmtUSD(r.iva_adicional)}</td>
         <td>${fmtARS(r.iva_adicional * tc)}</td>
-        <td>${pct(r.iva_adicional)}</td>
-        <td class="note-cell">Base IVA × 20%</td>
       </tr>
       <tr>
         <td class="concept" title="Percepción de Ganancias AFIP — recuperable">
@@ -3116,8 +3068,6 @@
         </td>
         <td>${fmtUSD(r.ganancias_perc)}</td>
         <td>${fmtARS(r.ganancias_perc * tc)}</td>
-        <td>${pct(r.ganancias_perc)}</td>
-        <td class="note-cell">Base IVA × 6%</td>
       </tr>
       <tr>
         <td class="concept" title="Percepción Ingresos Brutos Mendoza — recuperable">
@@ -3126,88 +3076,65 @@
         </td>
         <td>${fmtUSD(r.iibb_perc)}</td>
         <td>${fmtARS(r.iibb_perc * tc)}</td>
-        <td>${pct(r.iibb_perc)}</td>
-        <td class="note-cell">Base IVA × 2.5%</td>
       </tr>
       <tr class="subtotal-row">
         <td title="Suma de todos los tributos aduaneros">▶ Total Tributos (subtotal)</td>
         <td>${fmtUSD(r.total_tributos)}</td>
         <td>${fmtARS(r.total_tributos * tc)}</td>
-        <td>${pct(r.total_tributos)}</td>
-        <td class="note-cell">DIE + Est. + IVA + Percepciones</td>
       </tr>
       <tr>
         <td class="concept" title="Honorarios del despachante, gastos de terminal y puerto (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Gastos Despacho y Puerto${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
         <td>${fmtUSD(r.despacho_tot)}</td>
         <td>${fmtARS(r.despacho_tot * tc)}</td>
-        <td>${pct(r.despacho_tot)}</td>
-        <td class="note-cell">Despachante + terminal + almacenaje</td>
       </tr>
       <tr>
         <td class="concept" title="Transporte por camión desde Buenos Aires hasta Maipú, Mendoza (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Flete Terrestre B.A. → Maipú${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
         <td>${fmtUSD(r.flete_ter_tot)}</td>
         <td>${fmtARS(r.flete_ter_tot * tc)}</td>
-        <td>${pct(r.flete_ter_tot)}</td>
-        <td class="note-cell">Transporte en camión, ~1.100 km</td>
       </tr>
       <tr>
         <td class="concept" title="Costos bancarios, comisiones de transferencia, seguros de crédito (×${r.num_cont} contenedor${r.num_cont > 1 ? 'es' : ''})">Gastos Financieros${r.num_cont > 1 ? ` <span style="font-size:11px;color:var(--secondary)">×${r.num_cont}</span>` : ''}</td>
         <td>${fmtUSD(r.financiero_tot)}</td>
         <td>${fmtARS(r.financiero_tot * tc)}</td>
-        <td>${pct(r.financiero_tot)}</td>
-        <td class="note-cell">Comisiones bancarias, SWIFT</td>
       </tr>
       ${r.costos_ar_usd > 0 ? `
       <tr>
         <td class="concept" title="Costos adicionales en Argentina: depósito, traslado local, instalación, etc.">Costos en Argentina</td>
         <td>${fmtUSD(r.costos_ar_usd)}</td>
         <td>${fmtARS(r.costos_ar_usd * tc)}</td>
-        <td>${pct(r.costos_ar_usd)}</td>
-        <td class="note-cell">${state.costosAR.map(c => c.nombre || 'Sin nombre').join(', ')}</td>
       </tr>` : ''}
       <tr class="total-row">
         <td>TOTAL CONTENEDOR</td>
         <td>${fmtUSD(r.total_cont)}</td>
         <td>${fmtARS(r.total_cont * tc)}</td>
-        <td>100%</td>
-        <td>Costo completo puesto en Maipú</td>
       </tr>
       <tr class="unit-row">
         <td>COSTO UNITARIO</td>
         <td>${fmtUSD(r.costo_unit)}</td>
         <td>${fmtARS(r.costo_unit * tc)}</td>
-        <td>—</td>
-        <td>Total ÷ ${state.unidades} unidades</td>
       </tr>
       <tr>
         <td class="concept" title="Precio al que se vende cada unidad al cliente final">Precio de Venta Unitario</td>
         <td>${fmtUSD(state.precioVenta)}</td>
         <td>${fmtARS(state.precioVenta * tc)}</td>
-        <td>—</td>
-        <td>Precio al cliente final (USD)</td>
       </tr>
       <tr class="${marginClass}">
         <td><strong>MARGEN UNITARIO</strong></td>
         <td><strong>${fmtUSD(r.margen_unit)}</strong></td>
         <td>${fmtARS(r.margen_unit * tc)}</td>
-        <td>${fmtPct(r.margen_pct)} sobre costo</td>
-        <td>${r.margen_unit >= 0 ? 'Ganancia por unidad' : '⚠ Pérdida por unidad'}</td>
       </tr>
       <tr class="${marginTotalClass}">
         <td><strong>MARGEN TOTAL (${state.unidadesVendidas} vendidas)</strong></td>
         <td><strong>${fmtUSD(r.margen_total)}</strong></td>
         <td>${fmtARS(r.margen_total * tc)}</td>
-        <td>—</td>
-        <td>${r.margen_total >= 0 ? 'Ganancia total' : '⚠ Pérdida total'}</td>
       </tr>
       <tr>
         <td class="concept" title="Cantidad mínima de unidades a vender para recuperar la inversión total">Punto de Equilibrio</td>
-        <td colspan="3">${r.punto_eq} unidades (de ${state.unidades} disponibles)</td>
-        <td class="note-cell">Total_cont ÷ Precio_venta</td>
+        <td colspan="2">${r.punto_eq} unidades (de ${state.unidades} disponibles)</td>
       </tr>
 
       <tr class="fiscal-section-header">
-        <td colspan="5">⚖️ Análisis Fiscal — Resultado Post-Impuestos</td>
+        <td colspan="3">⚖️ Análisis Fiscal — Resultado Post-Impuestos</td>
       </tr>
       <tr class="fiscal-row">
         <td class="concept" title="IVA importación + IVA adicional + Percepción Ganancias + Percepción IIBB — se recuperan como crédito fiscal en la DDJJ mensual">
@@ -3216,22 +3143,16 @@
         </td>
         <td style="color:var(--positive);font-weight:600">+${fmtUSD(r.recuperables)}</td>
         <td style="color:var(--positive)">+${fmtARS(r.recuperables * tc)}</td>
-        <td>—</td>
-        <td class="note-cell">IVA 21% + IVA Adic. 20% + Gan. 6% + IIBB 2.5%</td>
       </tr>
       <tr class="fiscal-row fiscal-subtotal">
         <td title="Margen real descontando sólo los costos que no vuelven">▶ Costo Económico Real (sin recuperables)</td>
         <td>${fmtUSD(r.costo_economico)}</td>
         <td>${fmtARS(r.costo_economico * tc)}</td>
-        <td>—</td>
-        <td class="note-cell">Total sin IVA + percepciones</td>
       </tr>
       <tr class="fiscal-row fiscal-subtotal">
         <td title="Ganancia antes de impuesto a las ganancias corporativo">▶ Ganancia Bruta Ajustada (recuperables incluidos)</td>
         <td style="font-weight:600;color:${r.margen_ajustado >= 0 ? 'var(--positive)' : 'var(--negative)'}">${fmtUSD(r.margen_ajustado)}</td>
         <td style="color:${r.margen_ajustado >= 0 ? 'var(--positive)' : 'var(--negative)'}">${fmtARS(r.margen_ajustado * tc)}</td>
-        <td>—</td>
-        <td class="note-cell">Ingreso − Costo económico</td>
       </tr>
       <tr class="fiscal-row">
         <td class="concept" title="Impuesto a las Ganancias corporativo — alícuota general 35% sobre utilidad neta">
@@ -3239,15 +3160,11 @@
         </td>
         <td style="color:var(--negative);font-weight:600">−${fmtUSD(r.impuesto_ganancias)}</td>
         <td style="color:var(--negative)">−${fmtARS(r.impuesto_ganancias * tc)}</td>
-        <td>—</td>
-        <td class="note-cell">Alícuota 35% — Ley 20.628</td>
       </tr>
       <tr class="ganancia-neta-row">
         <td><strong>GANANCIA NETA POST-IMPUESTOS</strong></td>
         <td><strong>${fmtUSD(r.ganancia_neta)}</strong></td>
         <td><strong>${fmtARS(r.ganancia_neta * tc)}</strong></td>
-        <td><strong>${fmtPct(r.ganancia_neta_pct)} s/costo real</strong></td>
-        <td>${r.ganancia_neta >= 0 ? '✅ Operación rentable' : '❌ Pérdida neta'}</td>
       </tr>
     `;
   }
