@@ -952,7 +952,7 @@
     ============================================================ */
     .charts-section {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 18px;
     }
 
@@ -1847,16 +1847,79 @@
       .neto-item-val { font-size: 16px; }
       .neto-item.neto-result .neto-item-val { font-size: 22px; }
 
-      /* Table — convert to mobile-friendly cards via display contents trick */
-      .table-card-header { padding: 16px 18px; flex-direction: column; align-items: flex-start; gap: 6px; }
-      .table-card-title { font-size: 13px; }
-      table { font-size: 12px; }
-      thead th { padding: 9px 12px; font-size: 9.5px; }
-      tbody td { padding: 9px 12px; font-size: 12px; }
-      tbody td:not(:first-child) { font-size: 11.5px; white-space: nowrap; }
-      td.concept, td.note-cell { font-size: 11.5px; }
-      td.note-cell { display: none; } /* hide notes column on mobile */
-      thead th:last-child { display: none; }
+      /* Mobile scroll hint */
+      .table-card { position: relative; }
+      .table-card::after {
+        content: '⇢ desliza';
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        background: var(--accent-soft);
+        border-radius: 99px;
+        animation: hintFade 3s ease-in-out infinite;
+        pointer-events: none;
+      }
+      @keyframes hintFade {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+
+      /* Table — sticky first column + horizontal scroll for the rest */
+      .table-card-header { padding: 14px 16px 14px 18px; flex-direction: column; align-items: flex-start; gap: 6px; }
+      .table-card-title { font-size: 12.5px; }
+      .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+      }
+      table { font-size: 12px; min-width: 480px; }
+      thead th {
+        padding: 10px 12px;
+        font-size: 9.5px;
+        background: var(--bg-elevated);
+        white-space: nowrap;
+      }
+      tbody td {
+        padding: 10px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      tbody td:not(:first-child) {
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
+      /* Sticky first column so the concept stays visible while scrolling */
+      thead th:first-child,
+      tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--bg-card);
+        z-index: 2;
+        box-shadow: 1px 0 0 0 var(--border);
+        max-width: 165px;
+        white-space: normal;
+        font-size: 11.5px;
+        line-height: 1.3;
+      }
+      thead th:first-child {
+        background: var(--bg-elevated);
+        z-index: 3;
+      }
+      tbody tr:hover td:first-child { background: var(--bg-elevated); }
+      tr.subtotal-row td:first-child { background: var(--table-sub) !important; }
+      tr.total-row td:first-child,
+      tr.unit-row td:first-child,
+      tr.ganancia-neta-row td:first-child,
+      tr.fiscal-section-header td:first-child { background: inherit; box-shadow: none; }
+
+      /* Hide the Notas column on mobile — useless and crowds the layout */
+      td.note-cell, thead th:last-child { display: none; }
 
       /* Section headings */
       .section-heading { font-size: 10px; margin: 4px 0 -6px; }
@@ -1954,18 +2017,24 @@
       .chart-wrap { height: 200px !important; }
 
       /* Table — even tighter */
-      .table-card-header { padding: 14px 14px 12px; }
-      .table-card-title { font-size: 12.5px; }
-      table { font-size: 11.5px; }
+      .table-card-header { padding: 12px 14px; }
+      .table-card-title { font-size: 12px; }
+      table { font-size: 11.5px; min-width: 420px; }
       thead th { padding: 8px 10px; font-size: 9px; }
       tbody td { padding: 9px 10px; font-size: 11.5px; }
       tbody td:not(:first-child) { font-size: 11px; }
-      td.concept { font-size: 11.5px; line-height: 1.35; }
-      tr.total-row td { font-size: 12px; padding-top: 12px; padding-bottom: 12px; }
-      tr.unit-row td { font-size: 11.5px; }
-      tr.fiscal-section-header td { font-size: 10px; padding: 10px 12px; letter-spacing: 0.08em; }
-      tr.ganancia-neta-row td { font-size: 12px; padding: 13px 10px; }
-      tr.ganancia-neta-row td:not(:first-child) { font-size: 12.5px; }
+      thead th:first-child,
+      tbody td:first-child {
+        max-width: 140px;
+        font-size: 11px;
+        padding-left: 12px;
+        padding-right: 8px;
+      }
+      tr.total-row td { font-size: 11.5px; padding-top: 12px; padding-bottom: 12px; }
+      tr.unit-row td { font-size: 11px; }
+      tr.fiscal-section-header td { font-size: 9.5px; padding: 10px 12px; letter-spacing: 0.08em; }
+      tr.ganancia-neta-row td { font-size: 11.5px; padding: 13px 10px; }
+      tr.ganancia-neta-row td:not(:first-child) { font-size: 12px; }
 
       /* Neto card */
       .neto-card { padding: 20px 16px; border-radius: var(--radius-md); }
@@ -2370,13 +2439,6 @@
         <div class="chart-title">Comparación de Escenarios</div>
         <div class="chart-wrap" style="height: 260px;">
           <canvas id="chart-bar"></canvas>
-        </div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-title">Sensibilidad — Margen vs Precio de Venta</div>
-        <div class="chart-wrap" style="height: 260px;">
-          <canvas id="chart-line"></canvas>
         </div>
       </div>
 
@@ -2809,7 +2871,6 @@
   ============================================================ */
   let chartDoughnut = null;
   let chartBar      = null;
-  let chartLine     = null;
 
   function recalculate() {
     const r = calculate(state);
@@ -3175,13 +3236,11 @@
     const r = calculate(state);
     initDoughnut(r);
     initBar(r);
-    initLine(r);
   }
 
   function updateCharts(r) {
     updateDoughnut(r);
     updateBar();
-    updateLine(r);
   }
 
   /* ---- DOUGHNUT ---- */
@@ -3346,87 +3405,6 @@
     chartBar.data.datasets[0].data = bd.costs;
     chartBar.data.datasets[1].data = bd.incomes;
     chartBar.update({ duration: 300 });
-  }
-
-  /* ---- LINE CHART (Sensitivity) ---- */
-  function getLineData() {
-    const prices = [];
-    const margins = [];
-
-    for (let p = 5000; p <= 13000; p += 500) {
-      const r = calculate({ ...state, precioVenta: p, unidadesVendidas: state.unidades });
-      prices.push(p);
-      margins.push(Math.round(r.margen_total));
-    }
-
-    return { prices, margins };
-  }
-
-  function initLine() {
-    const ctx = document.getElementById('chart-line').getContext('2d');
-    const ld  = getLineData();
-
-    chartLine = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ld.prices.map(p => `${fmtNum(p)}`),
-        datasets: [{
-          label: 'Margen total USD',
-          data: ld.margins,
-          borderColor: '#0E4F3A',
-          backgroundColor: 'rgba(14, 79, 58, 0.10)',
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointBackgroundColor: '#0E4F3A',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointHoverBorderWidth: 2.5
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: ctx => `Precio: USD ${fmtNum(parseFloat(ctx[0].label.replace('.', '')))}`,
-              label: ctx => ` Margen: ${fmtUSD(ctx.parsed.y)}`
-            }
-          },
-          annotation: {}
-        },
-        scales: {
-          x: {
-            ticks: {
-              maxRotation: 45,
-              font: { size: 10 },
-              color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-            },
-            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() }
-          },
-          y: {
-            ticks: {
-              callback: v => 'USD ' + (v / 1000).toFixed(0) + 'k',
-              font: { size: 11 },
-              color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-            },
-            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() }
-          }
-        }
-      }
-    });
-  }
-
-  function updateLine() {
-    if (!chartLine) return;
-    const ld = getLineData();
-    chartLine.data.labels = ld.prices.map(p => `${fmtNum(p)}`);
-    chartLine.data.datasets[0].data = ld.margins;
-    chartLine.update({ duration: 300 });
   }
 
   /* ============================================================
