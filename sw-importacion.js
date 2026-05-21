@@ -1,81 +1,93 @@
 /* ============================================================
    Service Worker — Calculadora de Importación Rutas del Sur
-   Cache-first strategy for offline support
+   Network-first for HTML/JSON, cache-first for static assets
 ============================================================ */
 
-const CACHE_NAME = 'importacion-rs-v8-table';
+const CACHE_NAME = 'importacion-rs-v9-netfirst';
 
 const PRECACHE_ASSETS = [
-  '/dashboard-importacion.html',
   '/icons/icon.svg',
   '/manifest-importacion.json'
 ];
 
-/* ---- Install: precache shell assets ---- */
+/* ---- Install: precache only static stuff (NOT the HTML) ---- */
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
   );
   self.skipWaiting();
 });
 
-/* ---- Activate: clean old caches ---- */
+/* ---- Activate: nuke all old caches + claim every open page ---- */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keyList) =>
-      Promise.all(
-        keyList
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+      await self.clients.claim();
+      // Tell all open pages to reload so they get the new shell immediately
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((client) => client.postMessage({ type: 'SW_UPDATED' }));
+    })()
   );
-  self.clients.claim();
 });
 
-/* ---- Fetch: stale-while-revalidate for CDN, cache-first for local ---- */
+/* ---- Fetch strategy ----
+   - HTML pages: NETWORK FIRST (so the user always gets the latest UI)
+   - CDN assets: stale-while-revalidate
+   - Local static: cache first
+============================================================ */
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-  // CDN resources (Chart.js, fonts, html2pdf) — network first, fallback to cache
+  const url = new URL(req.url);
   const isCDN = url.hostname !== self.location.hostname;
+  const isHTML =
+    req.mode === 'navigate' ||
+    (req.headers.get('accept') || '').includes('text/html') ||
+    url.pathname.endsWith('.html');
 
-  if (isCDN) {
+  // HTML — always try network first, fallback to cache only if offline
+  if (isHTML) {
     event.respondWith(
-      fetch(event.request)
+      fetch(req, { cache: 'no-store' })
         .then((response) => {
           if (response && response.status === 200) {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(req).then((cached) => cached || caches.match('/dashboard-importacion.html')))
     );
     return;
   }
 
-  // Local assets — cache first, network fallback
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        // Revalidate in background
-        fetch(event.request)
-          .then((response) => {
-            if (response && response.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response));
-            }
-          })
-          .catch(() => {});
-        return cached;
-      }
+  // CDN assets — network first with cache fallback
+  if (isCDN) {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
 
-      return fetch(event.request).then((response) => {
+  // Local static (icons, manifest, css/js) — cache first
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+      return fetch(req).then((response) => {
         if (response && response.status === 200) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         }
         return response;
       });

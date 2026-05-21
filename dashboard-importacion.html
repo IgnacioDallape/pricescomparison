@@ -3662,13 +3662,27 @@
   });
   </script>
 
-  <!-- PWA Service Worker Registration -->
+  <!-- PWA Service Worker Registration with auto-update -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw-importacion.js')
-          .then(reg => console.log('[SW] Registrado:', reg.scope))
+          .then(reg => {
+            console.log('[SW] Registrado:', reg.scope);
+            // Poll for updates every minute (browser will only fetch if changed)
+            setInterval(() => reg.update().catch(() => {}), 60 * 1000);
+          })
           .catch(err => console.warn('[SW] Error:', err));
+
+        // Auto-reload when the SW says it just updated
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'SW_UPDATED' && !reloaded) {
+            reloaded = true;
+            console.log('[SW] Update received → reloading');
+            window.location.reload();
+          }
+        });
       });
     }
   </script>
