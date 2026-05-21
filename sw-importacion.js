@@ -3,7 +3,7 @@
    Cache-first strategy for offline support
 ============================================================ */
 
-const CACHE_NAME = 'importacion-rs-v6-mobile';
+const CACHE_NAME = 'importacion-rs-v7-overflow';
 
 const PRECACHE_ASSETS = [
   '/dashboard-importacion.html',
