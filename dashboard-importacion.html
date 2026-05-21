@@ -995,7 +995,7 @@
       width: 100%;
     }
 
-    .profit-donut-center {
+    .donut-center {
       position: absolute;
       top: 45%;
       left: 50%;
@@ -1004,24 +1004,38 @@
       pointer-events: none;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
+      min-width: 130px;
+      transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .profit-donut-label {
-      font-size: 12px;
-      font-weight: 600;
+    .donut-center-label {
+      font-size: 11px;
+      font-weight: 700;
       color: var(--text-tertiary);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
+      transition: color 0.18s;
     }
 
-    .profit-donut-value {
+    .donut-center-value {
       font-family: var(--font-mono);
-      font-size: 19px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+      transition: color 0.18s;
+    }
+
+    .donut-center-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      margin-top: 1px;
+      min-height: 14px;
     }
 
     /* ============================================================
@@ -2433,8 +2447,13 @@
 
       <div class="chart-card">
         <div class="chart-title">Composición del Costo</div>
-        <div class="chart-wrap" style="height: 280px;">
+        <div class="chart-wrap" style="height: 280px; position: relative;">
           <canvas id="chart-doughnut"></canvas>
+          <div class="donut-center" id="doughnut-center">
+            <div class="donut-center-label" id="doughnut-center-label">Costo Total</div>
+            <div class="donut-center-value" id="doughnut-center-value">USD 0</div>
+            <div class="donut-center-sub" id="doughnut-center-sub">100% del costo</div>
+          </div>
         </div>
       </div>
 
@@ -2442,9 +2461,10 @@
         <div class="chart-title">Costos · Ventas · Ganancia</div>
         <div class="chart-wrap" style="height: 280px; position: relative;">
           <canvas id="chart-profit"></canvas>
-          <div class="profit-donut-center" id="profit-center">
-            <div class="profit-donut-label">Ingreso total</div>
-            <div class="profit-donut-value" id="profit-center-value">USD 0</div>
+          <div class="donut-center" id="profit-center">
+            <div class="donut-center-label" id="profit-center-label">Ingreso Total</div>
+            <div class="donut-center-value" id="profit-center-value">USD 0</div>
+            <div class="donut-center-sub" id="profit-center-sub">venta proyectada</div>
           </div>
         </div>
       </div>
@@ -3182,44 +3202,25 @@
     financiero:'#CBD5E1'
   };
 
-  /* Custom Chart.js plugin: draw % labels inside each donut/pie slice */
-  const percentageLabelsPlugin = {
-    id: 'percentageLabels',
-    afterDatasetsDraw(chart) {
-      const { ctx, data } = chart;
-      if (!data.datasets || !data.datasets[0]) return;
-      const meta = chart.getDatasetMeta(0);
-      if (!meta || !meta.data) return;
-      const dataArr = data.datasets[0].data;
-      const total = dataArr.reduce((a, b) => a + (b || 0), 0);
-      if (total === 0) return;
-
-      meta.data.forEach((arc, i) => {
-        const value = dataArr[i] || 0;
-        const pct = (value / total) * 100;
-        if (pct < 3.5) return; // skip very small slices
-
-        const props = arc.getProps(
-          ['x','y','startAngle','endAngle','outerRadius','innerRadius'], true
-        );
-        const midAngle = (props.startAngle + props.endAngle) / 2;
-        const midRadius = (props.innerRadius + props.outerRadius) / 2;
-        const px = props.x + Math.cos(midAngle) * midRadius;
-        const py = props.y + Math.sin(midAngle) * midRadius;
-
-        ctx.save();
-        ctx.font = '700 12px Inter, system-ui, sans-serif';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,0.45)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 1;
-        ctx.fillText(pct.toFixed(1) + '%', px, py);
-        ctx.restore();
-      });
-    }
+  /* State para los centros de los donuts (defaults dinámicos) */
+  const donutCenterDefaults = {
+    doughnut: { label: 'Costo Total', value: 'USD 0', sub: '100% del costo' },
+    profit:   { label: 'Ingreso Total', value: 'USD 0', sub: 'venta proyectada' }
   };
+
+  function setDonutCenter(prefix, label, value, sub, color) {
+    const labelEl = document.getElementById(prefix + '-label');
+    const valueEl = document.getElementById(prefix + '-value');
+    const subEl   = document.getElementById(prefix + '-sub');
+    if (labelEl) { labelEl.textContent = label; labelEl.style.color = color || ''; }
+    if (valueEl) { valueEl.textContent = value; valueEl.style.color = color || ''; }
+    if (subEl)   subEl.textContent = sub || '';
+  }
+
+  function resetDonutCenter(prefix) {
+    const d = donutCenterDefaults[prefix === 'doughnut-center' ? 'doughnut' : 'profit'];
+    setDonutCenter(prefix, d.label, d.value, d.sub, '');
+  }
 
   function initCharts() {
     const r = calculate(state);
@@ -3232,40 +3233,52 @@
     updateProfit(r);
   }
 
-  /* ---- DOUGHNUT ---- */
+  /* ---- DOUGHNUT (Composición del Costo) ---- */
   function initDoughnut(r) {
     const ctx = document.getElementById('chart-doughnut').getContext('2d');
+    const colors = Object.values(CHART_COLORS);
     chartDoughnut = new Chart(ctx, {
       type: 'doughnut',
       data: getDoughnutData(r),
-      plugins: [percentageLabelsPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '68%',
         plugins: {
           legend: {
             position: 'bottom',
             labels: {
               font: { size: 11, family: 'Inter' },
               color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
-              padding: 10,
+              padding: 12,
               boxWidth: 12,
-              boxHeight: 12
+              boxHeight: 12,
+              usePointStyle: true,
+              pointStyle: 'circle'
             }
           },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                const pct   = ((ctx.parsed / total) * 100).toFixed(1);
-                return ` ${ctx.label}: ${fmtUSD(ctx.parsed)} (${pct}%)`;
-              }
-            }
-          }
+          tooltip: { enabled: false }
         },
-        cutout: '58%'
+        onHover: (event, elements, chart) => {
+          if (elements && elements.length > 0) {
+            const i = elements[0].index;
+            const data = chart.data.datasets[0].data;
+            const label = chart.data.labels[i];
+            const value = data[i];
+            const total = data.reduce((a, b) => a + b, 0);
+            const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+            setDonutCenter('doughnut-center', label, fmtUSD(value), pct + '% del costo', colors[i]);
+            event.native.target.style.cursor = 'pointer';
+          } else {
+            resetDonutCenter('doughnut-center');
+            if (event.native) event.native.target.style.cursor = 'default';
+          }
+        }
       }
     });
+    // Reset center on mouse leave
+    const canvas = document.getElementById('chart-doughnut');
+    canvas.addEventListener('mouseleave', () => resetDonutCenter('doughnut-center'));
   }
 
   function getDoughnutData(r) {
@@ -3295,6 +3308,10 @@
     chartDoughnut.data.labels = d.labels;
     chartDoughnut.data.datasets[0].data = d.datasets[0].data;
     chartDoughnut.update({ duration: 300 });
+
+    // Update default center to show total cost
+    donutCenterDefaults.doughnut.value = fmtUSD(r.total_cont);
+    resetDonutCenter('doughnut-center');
   }
 
   /* ---- DONUT (Costos · Impuestos · Ganancia Neta) ---- */
@@ -3320,10 +3337,10 @@
 
   function initProfit(r) {
     const ctx = document.getElementById('chart-profit').getContext('2d');
+    const colors = ['#B45309', '#D97706', '#0E4F3A'];
     chartBar = new Chart(ctx, {
       type: 'doughnut',
       data: getProfitData(r),
-      plugins: [percentageLabelsPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -3341,18 +3358,27 @@
               pointStyle: 'circle'
             }
           },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                const pct   = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
-                return ` ${ctx.label}: ${fmtUSD(ctx.parsed)} (${pct}%)`;
-              }
-            }
+          tooltip: { enabled: false }
+        },
+        onHover: (event, elements, chart) => {
+          if (elements && elements.length > 0) {
+            const i = elements[0].index;
+            const data = chart.data.datasets[0].data;
+            const label = chart.data.labels[i];
+            const value = data[i];
+            const total = data.reduce((a, b) => a + b, 0);
+            const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+            setDonutCenter('profit-center', label, fmtUSD(value), pct + '% del ingreso', colors[i]);
+            event.native.target.style.cursor = 'pointer';
+          } else {
+            resetDonutCenter('profit-center');
+            if (event.native) event.native.target.style.cursor = 'default';
           }
         }
       }
     });
+    const canvas = document.getElementById('chart-profit');
+    canvas.addEventListener('mouseleave', () => resetDonutCenter('profit-center'));
   }
 
   function updateProfit(r) {
@@ -3363,9 +3389,9 @@
     chartBar.data.datasets[0].backgroundColor = d.datasets[0].backgroundColor;
     chartBar.update({ duration: 300 });
 
-    // Update center label
-    const centerEl = document.getElementById('profit-center-value');
-    if (centerEl) centerEl.textContent = fmtUSD(r.ingreso_total);
+    // Update default center
+    donutCenterDefaults.profit.value = fmtUSD(r.ingreso_total);
+    resetDonutCenter('profit-center');
   }
 
   /* ============================================================
