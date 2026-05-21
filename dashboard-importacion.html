@@ -995,6 +995,35 @@
       width: 100%;
     }
 
+    .profit-donut-center {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .profit-donut-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .profit-donut-value {
+      font-family: var(--font-mono);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
     /* ============================================================
        BREAKDOWN TABLE
     ============================================================ */
@@ -2430,15 +2459,19 @@
 
       <div class="chart-card">
         <div class="chart-title">Composición del Costo</div>
-        <div class="chart-wrap" style="height: 260px;">
+        <div class="chart-wrap" style="height: 280px;">
           <canvas id="chart-doughnut"></canvas>
         </div>
       </div>
 
       <div class="chart-card">
-        <div class="chart-title">Comparación de Escenarios</div>
-        <div class="chart-wrap" style="height: 260px;">
-          <canvas id="chart-bar"></canvas>
+        <div class="chart-title">Costos · Ventas · Ganancia</div>
+        <div class="chart-wrap" style="height: 280px; position: relative;">
+          <canvas id="chart-profit"></canvas>
+          <div class="profit-donut-center" id="profit-center">
+            <div class="profit-donut-label">Ingreso total</div>
+            <div class="profit-donut-value" id="profit-center-value">USD 0</div>
+          </div>
         </div>
       </div>
 
@@ -3235,12 +3268,12 @@
   function initCharts() {
     const r = calculate(state);
     initDoughnut(r);
-    initBar(r);
+    initProfit(r);
   }
 
   function updateCharts(r) {
     updateDoughnut(r);
-    updateBar();
+    updateProfit(r);
   }
 
   /* ---- DOUGHNUT ---- */
@@ -3307,104 +3340,74 @@
     chartDoughnut.update({ duration: 300 });
   }
 
-  /* ---- HORIZONTAL BAR (Scenarios) ---- */
-  function getBarData() {
-    const s = state;
-    const scenarios = [
-      { label: 'Conservador (USD 7.500)', price: 7500, ncm: 0.35,   units: s.unidades },
-      { label: 'Base (actual)',           price: s.precioVenta, ncm: s.ncm, units: s.unidades },
-      { label: 'Optimista (USD 10.000)', price: 10000, ncm: 0.126, units: s.unidades }
-    ];
-
-    const costs   = [];
-    const incomes = [];
-    const labels  = [];
-
-    for (const sc of scenarios) {
-      const r = calculate({ ...s, ncm: sc.ncm, precioVenta: sc.price, unidadesVendidas: sc.units });
-      costs.push(Math.round(r.total_cont));
-      incomes.push(Math.round(r.ingreso_total));
-      labels.push(sc.label);
-    }
-
-    return { labels, costs, incomes };
+  /* ---- DONUT (Costos · Impuestos · Ganancia Neta) ---- */
+  function getProfitData(r) {
+    // Total = ingreso, dividido en: costo económico + impuesto ganancias + ganancia neta
+    // (estos tres suman el ingreso total porque ingreso = costo + ganancia_bruta
+    //  y ganancia_bruta = impuesto + ganancia_neta)
+    const costo  = Math.max(0, r.costo_economico);
+    const imp    = Math.max(0, r.impuesto_ganancias);
+    const ganNet = Math.max(0, r.ganancia_neta);
+    return {
+      labels: ['Costos', 'Impuesto Ganancias', 'Ganancia Neta'],
+      datasets: [{
+        data: [costo, imp, ganNet],
+        backgroundColor: ['#B45309', '#D97706', '#0E4F3A'],
+        borderWidth: 2,
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-card').trim() || '#fff',
+        hoverOffset: 8,
+        spacing: 2
+      }]
+    };
   }
 
-  function initBar() {
-    const ctx = document.getElementById('chart-bar').getContext('2d');
-    const bd  = getBarData();
-    chartBar  = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: bd.labels,
-        datasets: [
-          {
-            label: 'Costo total',
-            data: bd.costs,
-            backgroundColor: '#B45309',
-            borderRadius: 6,
-            borderSkipped: false
-          },
-          {
-            label: 'Ingreso total',
-            data: bd.incomes,
-            backgroundColor: '#0E4F3A',
-            borderRadius: 6,
-            borderSkipped: false
-          }
-        ]
-      },
+  function initProfit(r) {
+    const ctx = document.getElementById('chart-profit').getContext('2d');
+    chartBar = new Chart(ctx, {
+      type: 'doughnut',
+      data: getProfitData(r),
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '68%',
         plugins: {
           legend: {
             position: 'bottom',
             labels: {
               font: { size: 11, family: 'Inter' },
               color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),
-              padding: 10,
+              padding: 12,
               boxWidth: 12,
-              boxHeight: 12
+              boxHeight: 12,
+              usePointStyle: true,
+              pointStyle: 'circle'
             }
           },
           tooltip: {
             callbacks: {
               label: function(ctx) {
-                return ` ${ctx.dataset.label}: ${fmtUSD(ctx.parsed.x)}`;
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const pct   = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
+                return ` ${ctx.label}: ${fmtUSD(ctx.parsed)} (${pct}%)`;
               }
             }
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              callback: v => 'USD ' + (v / 1000).toFixed(0) + 'k',
-              font: { size: 11 },
-              color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-            },
-            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() }
-          },
-          y: {
-            ticks: {
-              font: { size: 11 },
-              color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-            },
-            grid: { display: false }
           }
         }
       }
     });
   }
 
-  function updateBar() {
+  function updateProfit(r) {
     if (!chartBar) return;
-    const bd = getBarData();
-    chartBar.data.labels = bd.labels;
-    chartBar.data.datasets[0].data = bd.costs;
-    chartBar.data.datasets[1].data = bd.incomes;
+    const d = getProfitData(r);
+    chartBar.data.labels = d.labels;
+    chartBar.data.datasets[0].data = d.datasets[0].data;
+    chartBar.data.datasets[0].backgroundColor = d.datasets[0].backgroundColor;
     chartBar.update({ duration: 300 });
+
+    // Update center label
+    const centerEl = document.getElementById('profit-center-value');
+    if (centerEl) centerEl.textContent = fmtUSD(r.ingreso_total);
   }
 
   /* ============================================================
@@ -3662,19 +3665,39 @@
   });
   </script>
 
-  <!-- PWA Service Worker Registration with auto-update -->
+  <!-- ============================================================
+       PWA Service Worker + emergency cache reset
+  ============================================================ -->
   <script>
+    // Emergency reset: if URL has ?reset or ?nuke, nuke everything and reload clean
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('reset') || params.has('nuke')) {
+        try {
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+          }
+          if ('caches' in window) {
+            const names = await caches.keys();
+            await Promise.all(names.map(n => caches.delete(n)));
+          }
+        } catch (e) { console.warn('reset error', e); }
+        // Redirect clean
+        window.location.replace(window.location.pathname);
+        return;
+      }
+    })();
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw-importacion.js')
           .then(reg => {
             console.log('[SW] Registrado:', reg.scope);
-            // Poll for updates every minute (browser will only fetch if changed)
             setInterval(() => reg.update().catch(() => {}), 60 * 1000);
           })
           .catch(err => console.warn('[SW] Error:', err));
 
-        // Auto-reload when the SW says it just updated
         let reloaded = false;
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data && event.data.type === 'SW_UPDATED' && !reloaded) {
