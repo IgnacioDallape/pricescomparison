@@ -3,7 +3,7 @@
    Network-first for HTML/JSON, cache-first for static assets
 ============================================================ */
 
-const CACHE_NAME = 'importacion-rs-v15-hover';
+const CACHE_NAME = 'importacion-rs-v16-legend';
 
 const PRECACHE_ASSETS = [
   '/icons/icon.svg',
