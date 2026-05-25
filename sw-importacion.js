@@ -3,7 +3,7 @@
    Network-first for HTML/JSON, cache-first for static assets
 ============================================================ */
 
-const CACHE_NAME = 'importacion-rs-v21-thumbsolid';
+const CACHE_NAME = 'importacion-rs-v22-autoupdate';
 
 const PRECACHE_ASSETS = [
   '/icons/icon.svg',
@@ -16,6 +16,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
   );
   self.skipWaiting();
+});
+
+/* ---- Listen for SKIP_WAITING message from the page ---- */
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 /* ---- Activate: nuke all old caches + claim every open page ---- */

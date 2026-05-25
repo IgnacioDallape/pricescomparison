@@ -3873,10 +3873,14 @@
   </script>
 
   <!-- ============================================================
-       PWA Service Worker + emergency cache reset
+       PWA Service Worker — auto-update bulletproof
   ============================================================ -->
   <script>
-    // Emergency reset: if URL has ?reset or ?nuke, nuke everything and reload clean
+    /* App version — bumped on every push. The page checks this against
+       what the server serves; if different, reload the page. */
+    const APP_VERSION = '2026.05.21.001';
+
+    // Emergency reset: ?reset or ?nuke clears everything and reloads clean
     (async () => {
       const params = new URLSearchParams(window.location.search);
       if (params.has('reset') || params.has('nuke')) {
@@ -3890,7 +3894,6 @@
             await Promise.all(names.map(n => caches.delete(n)));
           }
         } catch (e) { console.warn('reset error', e); }
-        // Redirect clean
         window.location.replace(window.location.pathname);
         return;
       }
@@ -3900,19 +3903,63 @@
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw-importacion.js')
           .then(reg => {
-            console.log('[SW] Registrado:', reg.scope);
-            setInterval(() => reg.update().catch(() => {}), 60 * 1000);
+            console.log('[SW] v' + APP_VERSION + ' registrado:', reg.scope);
+
+            // Check for updates every 30s (browser only re-downloads SW if changed)
+            setInterval(() => reg.update().catch(() => {}), 30 * 1000);
+
+            // When the SW finds a new version, force it to skip waiting
+            reg.addEventListener('updatefound', () => {
+              const newSW = reg.installing;
+              if (!newSW) return;
+              newSW.addEventListener('statechange', () => {
+                if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[SW] Nueva versión instalada — activando');
+                  newSW.postMessage({ type: 'SKIP_WAITING' });
+                }
+              });
+            });
           })
           .catch(err => console.warn('[SW] Error:', err));
 
-        let reloaded = false;
+        // RELOAD TRIGGER #1: controllerchange (cuando un SW nuevo toma control)
+        let reloadingFromController = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (reloadingFromController) return;
+          reloadingFromController = true;
+          console.log('[SW] controllerchange → recargando');
+          window.location.reload();
+        });
+
+        // RELOAD TRIGGER #2: mensaje SW_UPDATED desde el SW
+        let reloadingFromMessage = false;
         navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data && event.data.type === 'SW_UPDATED' && !reloaded) {
-            reloaded = true;
-            console.log('[SW] Update received → reloading');
+          if (event.data && event.data.type === 'SW_UPDATED' && !reloadingFromMessage) {
+            reloadingFromMessage = true;
+            console.log('[SW] SW_UPDATED → recargando');
             window.location.reload();
           }
         });
+
+        // RELOAD TRIGGER #3: version check vía fetch directo al HTML
+        // Cada 45s pedimos el HTML al server y vemos si APP_VERSION cambió
+        async function checkVersion() {
+          try {
+            const res = await fetch(window.location.pathname + '?v=' + Date.now(), {
+              cache: 'no-store'
+            });
+            if (!res.ok) return;
+            const html = await res.text();
+            const match = html.match(/const APP_VERSION = '([^']+)'/);
+            if (match && match[1] && match[1] !== APP_VERSION) {
+              console.log('[SW] Server version', match[1], '≠ local', APP_VERSION, '→ recargando');
+              window.location.reload();
+            }
+          } catch (e) { /* offline, ignore */ }
+        }
+        setInterval(checkVersion, 45 * 1000);
+        // Initial check 5s after load
+        setTimeout(checkVersion, 5000);
       });
     }
   </script>
