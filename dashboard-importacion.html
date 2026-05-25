@@ -257,28 +257,6 @@
       50% { opacity: 0.5; }
     }
 
-    /* Version badge for debugging cache issues */
-    .version-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      margin-left: 8px;
-      background: #FF00AA;
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 99px;
-      letter-spacing: 0.05em;
-      font-family: 'Inter', monospace;
-      box-shadow: 0 0 12px rgba(255, 0, 170, 0.6);
-      animation: badgeGlow 1.5s ease-in-out infinite;
-    }
-
-    @keyframes badgeGlow {
-      0%, 100% { box-shadow: 0 0 12px rgba(255, 0, 170, 0.6); transform: scale(1); }
-      50%      { box-shadow: 0 0 20px rgba(255, 0, 170, 0.9); transform: scale(1.05); }
-    }
-
     .header-right {
       display: flex;
       align-items: center;
@@ -2308,7 +2286,6 @@
 
     <div class="header-center">
       <span id="fecha-analisis"></span>
-      <span class="version-badge" id="version-badge">v004</span>
     </div>
 
     <div class="header-right">
@@ -2997,11 +2974,9 @@
     const range = max - min;
     if (range === 0) return;
     const pct = ((val - min) / range) * 100;
-    // El thumb es 16px ancho; el centro está en pct%, el borde derecho
-    // está +8px más. Usamos calc() para que el fill verde llegue hasta
-    // el borde derecho del thumb y elimine el gap visual entre los dos.
+    // Simple gradient — el thumb 100% verde sólido cubre cualquier gap visual
     slEl.style.background =
-      `linear-gradient(90deg, var(--accent) 0%, var(--accent) calc(${pct}% + 9px), var(--bg-card2) calc(${pct}% + 9px), var(--bg-card2) 100%)`;
+      `linear-gradient(90deg, var(--accent) ${pct}%, var(--bg-card2) ${pct}%)`;
   }
 
   function syncSlider(key, val) {
@@ -3907,7 +3882,7 @@
   <script>
     /* App version — bumped on every push. The page checks this against
        what the server serves; if different, reload the page. */
-    const APP_VERSION = '2026.05.21.004';
+    const APP_VERSION = '2026.05.21.005';
 
     // Emergency reset: ?reset or ?nuke clears everything and reloads clean
     (async () => {
