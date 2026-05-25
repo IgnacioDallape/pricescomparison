@@ -2971,8 +2971,15 @@
   function updateTrackFill(slEl) {
     const min = parseFloat(slEl.min) || 0;
     const max = parseFloat(slEl.max) || 100;
-    const pct = ((parseFloat(slEl.value) - min) / (max - min)) * 100;
-    slEl.style.background = `linear-gradient(90deg, var(--accent) ${pct}%, rgba(0,0,0,0.10) ${pct}%)`;
+    const val = parseFloat(slEl.value);
+    const range = max - min;
+    if (range === 0) return;
+    const pct = ((val - min) / range) * 100;
+    // El thumb es 16px ancho; el centro está en pct%, el borde derecho
+    // está +8px más. Usamos calc() para que el fill verde llegue hasta
+    // el borde derecho del thumb y elimine el gap visual entre los dos.
+    slEl.style.background =
+      `linear-gradient(90deg, var(--accent) 0%, var(--accent) calc(${pct}% + 8px), var(--bg-card2) calc(${pct}% + 8px), var(--bg-card2) 100%)`;
   }
 
   function syncSlider(key, val) {
@@ -3878,7 +3885,7 @@
   <script>
     /* App version — bumped on every push. The page checks this against
        what the server serves; if different, reload the page. */
-    const APP_VERSION = '2026.05.21.001';
+    const APP_VERSION = '2026.05.21.002';
 
     // Emergency reset: ?reset or ?nuke clears everything and reloads clean
     (async () => {
