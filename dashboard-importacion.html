@@ -3071,6 +3071,9 @@
         slUV.value = state.unidades;
         inUV.value = state.unidades;
       }
+      // Refresh track fill después de cambiar el max — sino el background
+      // queda calculado con el max viejo y se ve mal
+      updateTrackFill(slUV);
     }
 
     /* ---- Loss banner ---- */
@@ -3882,7 +3885,7 @@
   <script>
     /* App version — bumped on every push. The page checks this against
        what the server serves; if different, reload the page. */
-    const APP_VERSION = '2026.05.21.005';
+    const APP_VERSION = '2026.05.21.006';
 
     // Emergency reset: ?reset or ?nuke clears everything and reloads clean
     (async () => {
