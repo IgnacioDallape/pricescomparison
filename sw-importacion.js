@@ -3,7 +3,7 @@
    Network-first for HTML/JSON, cache-first for static assets
 ============================================================ */
 
-const CACHE_NAME = 'importacion-rs-v24-thumbsolid';
+const CACHE_NAME = 'importacion-rs-v25-pinkbadge';
 
 const PRECACHE_ASSETS = [
   '/icons/icon.svg',
