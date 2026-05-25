@@ -732,15 +732,16 @@
     .input-row input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       background: var(--accent);
-      border: 3px solid white;
+      border: none;
       box-shadow:
-        0 0 0 1px rgba(14,79,58,0.45),
-        0 2px 6px rgba(14,79,58,0.28),
-        0 1px 2px rgba(0,0,0,0.10);
+        0 0 0 3px white,
+        0 0 0 4px var(--accent),
+        0 2px 8px rgba(14,79,58,0.40),
+        0 1px 3px rgba(0,0,0,0.15);
       cursor: pointer;
       transition: transform 0.16s cubic-bezier(0.4, 0, 0.2, 1),
                   box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
@@ -749,28 +750,30 @@
     .input-row input[type="range"]:hover::-webkit-slider-thumb {
       transform: scale(1.15);
       box-shadow:
-        0 0 0 1px rgba(14,79,58,0.5),
-        0 0 0 6px var(--accent-soft),
-        0 4px 10px rgba(14,79,58,0.35);
+        0 0 0 3px white,
+        0 0 0 4px var(--accent),
+        0 0 0 10px var(--accent-soft),
+        0 4px 12px rgba(14,79,58,0.45);
     }
 
     .input-row input[type="range"]:active::-webkit-slider-thumb {
       transform: scale(1.08);
       box-shadow:
-        0 0 0 1px rgba(14,79,58,0.55),
-        0 0 0 8px var(--accent-soft),
-        0 2px 6px rgba(14,79,58,0.40);
+        0 0 0 3px white,
+        0 0 0 4px var(--accent),
+        0 0 0 12px var(--accent-soft);
     }
 
     .input-row input[type="range"]::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       background: var(--accent);
-      border: 3px solid white;
+      border: none;
       box-shadow:
-        0 0 0 1px rgba(14,79,58,0.45),
-        0 2px 6px rgba(14,79,58,0.28);
+        0 0 0 3px white,
+        0 0 0 4px var(--accent),
+        0 2px 8px rgba(14,79,58,0.40);
       cursor: pointer;
     }
 
@@ -781,14 +784,17 @@
     }
 
     html.dark .input-row input[type="range"]::-webkit-slider-thumb {
-      border-color: var(--bg-card);
       box-shadow:
-        0 0 0 1px rgba(52,211,153,0.5),
-        0 2px 6px rgba(52,211,153,0.30);
+        0 0 0 3px var(--bg-card),
+        0 0 0 4px var(--accent),
+        0 2px 8px rgba(52,211,153,0.40);
     }
 
     html.dark .input-row input[type="range"]::-moz-range-thumb {
-      border-color: var(--bg-card);
+      box-shadow:
+        0 0 0 3px var(--bg-card),
+        0 0 0 4px var(--accent),
+        0 2px 8px rgba(52,211,153,0.40);
     }
 
     /* NCM selector */
