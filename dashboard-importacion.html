@@ -732,48 +732,47 @@
     .input-row input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: var(--accent);
       border: none;
       box-shadow:
-        0 0 0 3px white,
-        0 0 0 4px var(--accent),
-        0 2px 8px rgba(14,79,58,0.40),
-        0 1px 3px rgba(0,0,0,0.15);
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        0 0 0 1px rgba(7, 38, 27, 0.5),
+        0 2px 5px rgba(14, 79, 58, 0.40);
       cursor: pointer;
       transition: transform 0.16s cubic-bezier(0.4, 0, 0.2, 1),
                   box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .input-row input[type="range"]:hover::-webkit-slider-thumb {
-      transform: scale(1.15);
+      transform: scale(1.18);
       box-shadow:
-        0 0 0 3px white,
-        0 0 0 4px var(--accent),
-        0 0 0 10px var(--accent-soft),
-        0 4px 12px rgba(14,79,58,0.45);
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 0 0 1px rgba(7, 38, 27, 0.6),
+        0 0 0 6px var(--accent-soft),
+        0 3px 8px rgba(14, 79, 58, 0.45);
     }
 
     .input-row input[type="range"]:active::-webkit-slider-thumb {
-      transform: scale(1.08);
+      transform: scale(1.10);
       box-shadow:
-        0 0 0 3px white,
-        0 0 0 4px var(--accent),
-        0 0 0 12px var(--accent-soft);
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 0 0 1px rgba(7, 38, 27, 0.6),
+        0 0 0 8px var(--accent-soft);
     }
 
     .input-row input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: var(--accent);
       border: none;
       box-shadow:
-        0 0 0 3px white,
-        0 0 0 4px var(--accent),
-        0 2px 8px rgba(14,79,58,0.40);
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        0 0 0 1px rgba(7, 38, 27, 0.5),
+        0 2px 5px rgba(14, 79, 58, 0.40);
       cursor: pointer;
     }
 
@@ -785,16 +784,16 @@
 
     html.dark .input-row input[type="range"]::-webkit-slider-thumb {
       box-shadow:
-        0 0 0 3px var(--bg-card),
-        0 0 0 4px var(--accent),
-        0 2px 8px rgba(52,211,153,0.40);
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        0 2px 5px rgba(52, 211, 153, 0.40);
     }
 
     html.dark .input-row input[type="range"]::-moz-range-thumb {
       box-shadow:
-        0 0 0 3px var(--bg-card),
-        0 0 0 4px var(--accent),
-        0 2px 8px rgba(52,211,153,0.40);
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        0 2px 5px rgba(52, 211, 153, 0.40);
     }
 
     /* NCM selector */
@@ -2979,7 +2978,7 @@
     // está +8px más. Usamos calc() para que el fill verde llegue hasta
     // el borde derecho del thumb y elimine el gap visual entre los dos.
     slEl.style.background =
-      `linear-gradient(90deg, var(--accent) 0%, var(--accent) calc(${pct}% + 8px), var(--bg-card2) calc(${pct}% + 8px), var(--bg-card2) 100%)`;
+      `linear-gradient(90deg, var(--accent) 0%, var(--accent) calc(${pct}% + 9px), var(--bg-card2) calc(${pct}% + 9px), var(--bg-card2) 100%)`;
   }
 
   function syncSlider(key, val) {
@@ -3885,7 +3884,7 @@
   <script>
     /* App version — bumped on every push. The page checks this against
        what the server serves; if different, reload the page. */
-    const APP_VERSION = '2026.05.21.002';
+    const APP_VERSION = '2026.05.21.003';
 
     // Emergency reset: ?reset or ?nuke clears everything and reloads clean
     (async () => {
